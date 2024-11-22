@@ -2,16 +2,13 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-import data_manager
+from data_manager import DataManager
 
-BOOK_STATUS = {
-    0: "выдана",
-    1: "в наличии"
-}
 
 class BookStatus(Enum):
     BORROWED = "выдана"
     AVAILABLE = "в наличии"
+
 
 @dataclass
 class Book:
@@ -42,8 +39,9 @@ class Library:
     """
     Класс Библиотека для обработки данных о книгах и взаимодействия с менеджером данных
     """
-    def __init__(self):
-        self.books: list[Book] = [Book.from_dict(book) for book in data_manager.load_books()]
+    def __init__(self, datamanager: DataManager = DataManager()):
+        self.data_manager = datamanager
+        self.books: list[Book] = [Book.from_dict(book) for book in self.data_manager.load_books()]
 
     @staticmethod
     def print_books(books: list[Book]) -> None:
@@ -59,7 +57,7 @@ class Library:
 
     def _save_books(self) -> None:
         """Передает список всех хранящихся в библиотеке книг для дальнейшей обработки. """
-        data_manager.save_books([book.to_dict() for book in self.books])
+        self.data_manager.save_books([book.to_dict() for book in self.books])
 
     def add_book(self, title: str, author: str, year: str) -> None:
         """
@@ -114,6 +112,8 @@ class Library:
             book for book in self.books
             if search_term.lower() in str(getattr(book, search_type)).lower()
         ]
+        if search_book_result:
+            print("\nВот что удалось найти по вашему запросу:\n")
         self.print_books(search_book_result)
 
     def display_books(self) -> None:
@@ -137,9 +137,9 @@ class Library:
             return
 
         if book.status == new_status:
-            print(f"У книги {book.title} уже установлен статус '{book.status}' в настоящий момент.")
+            print(f"У книги '{book.title}' уже установлен статус '{book.status}' в настоящий момент.")
             return
 
         book.status = new_status
         self._save_books()
-        print(f"Статус книги {book.title} изменен на {new_status}")
+        print(f"Статус книги '{book.title}' изменен на '{new_status}'")

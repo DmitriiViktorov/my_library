@@ -65,8 +65,8 @@ class Librarian:
     Выполняет запрос данных от пользователя, проводит валидацию полученных значений и в случае
     успеха - передает полученные данные объекту Library для дальнейшей обработки.
     """
-    def __init__(self):
-        self.library = Library()
+    def __init__(self, library: Library = Library()):
+        self.library = library
         self.current_year = datetime.now().year
 
     def add_book(self) ->  None:
