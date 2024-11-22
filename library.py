@@ -15,6 +15,9 @@ class BookStatus(Enum):
 
 @dataclass
 class Book:
+    """
+    Класс Книга для упрощения получения (from_dict) и передачи (to_dict) данных о книгах.
+    """
     id: str
     title: str
     author: str
@@ -36,11 +39,15 @@ class Book:
 
 
 class Library:
+    """
+    Класс Библиотека для обработки данных о книгах и взаимодействия с менеджером данных
+    """
     def __init__(self):
         self.books: list[Book] = [Book.from_dict(book) for book in data_manager.load_books()]
 
     @staticmethod
     def print_books(books: list[Book]) -> None:
+        """Выводит на экран информацию о каждой книге из полученного списка"""
         if not books:
             print("Книги не найдены.")
             return
@@ -51,9 +58,16 @@ class Library:
             print(f"{book.id:<5}{book.title:<25}{book.author:<25}{book.year:<10}{book.status:<10}")
 
     def _save_books(self) -> None:
+        """Передает список всех хранящихся в библиотеке книг для дальнейшей обработки. """
         data_manager.save_books([book.to_dict() for book in self.books])
 
     def add_book(self, title: str, author: str, year: str) -> None:
+        """
+        Сохраняет данные о новой книге, присваивает новый уникальный ID и устанавливает статус 'в наличии'.
+        :param title: Название книги
+        :param author: Автор книги
+        :param year: Год издания
+        """
         book_id = "1" if not self.books else str(max(int(book.id) for book in self.books) + 1)
 
         new_book = Book(
@@ -69,6 +83,11 @@ class Library:
         print(f"\nКнига '{new_book.title}' добавлена в библиотеку.")
 
     def delete_book(self, book_id: str) -> None:
+        """
+        Удаляет книгу с переданным параметром ID.
+        В случае, если книга есть в библиотеке - просит подтверждения на удаление и удаляет её.
+        :param book_id: ID книги, которую надо удалить.
+        """
         book = next((book for book in self.books if book.id == book_id), None)
 
         if not book:
@@ -85,6 +104,12 @@ class Library:
             print(f"Удаление книги {book.title} отменено.")
 
     def search_book(self, search_type: str, search_term: str) -> None:
+        """
+        Производит поиск книг по выбранному параметру поиска и значениям для поиска.
+        В случае, если несколько книг соответствуют значениям для поиска - выводит все эти книги.
+        :param search_type: Параметры поиска (по умолчанию: 'название', 'автор' и 'год').
+        :param search_term: Значение для поиска в выбранном параметре.
+        """
         search_book_result = [
             book for book in self.books
             if search_term.lower() in str(getattr(book, search_type)).lower()
@@ -92,12 +117,20 @@ class Library:
         self.print_books(search_book_result)
 
     def display_books(self) -> None:
+        """Выводит на экран все книги, находящиеся в данный момент в библиотеке."""
         if not self.books:
             print("В данный момент в библиотеке нет ни одной книги.")
             return
         self.print_books(self.books)
 
     def change_status(self, book_id: str, new_status: str) -> None:
+        """
+        Изменяет статус книги с переданным ID.
+        В случае, если ID книги есть в библиотеке и текущий статус отличается от переданного -
+        заменяет значение статуса на переданный.
+        :param book_id: ID книги, у которой надо изменить статус.
+        :param new_status: Новый статус книги.
+        """
         book = next((book for book in self.books if book.id == book_id), None)
         if not book:
             print(f"Книга с id {book_id} не найдена.")

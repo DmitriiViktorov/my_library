@@ -1,5 +1,3 @@
-from random import choice
-
 from librarian import Librarian
 import sys
 
