@@ -1,14 +1,15 @@
 import json
+from typing import Any
+from pathlib import Path
 
-DATA_FILE = "books.json"
 
-def load_books():
+DATA_FILE = Path("books.json")
+
+def load_books() -> list[dict[str, Any]]:
     try:
-        with open(DATA_FILE, "r") as file:
-            return json.load(file)
+        return json.loads(DATA_FILE.read_text())
     except FileNotFoundError:
-        return {}
+        return []
 
-def save_books(books):
-    with open(DATA_FILE, "w") as file:
-        json.dump(books, file, indent=4)
+def save_books(books: list[dict[str, Any]]) -> None:
+    DATA_FILE.write_text(json.dumps(books, indent=4, ensure_ascii=False))
