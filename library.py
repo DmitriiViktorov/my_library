@@ -82,7 +82,7 @@ class Library:
             print(f"\nКнига с id {book_id} удалена из библиотеки.")
             return
         else:
-            print(f"Удаление книги {book["title"]} отменено.")
+            print(f"Удаление книги {book.title} отменено.")
 
     def search_book(self, search_type: str, search_term: str) -> None:
         search_book_result = [
@@ -105,6 +105,7 @@ class Library:
 
         if book.status == new_status:
             print(f"У книги {book.title} уже установлен статус '{book.status}' в настоящий момент.")
+            return
 
         book.status = new_status
         self._save_books()

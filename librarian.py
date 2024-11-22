@@ -1,9 +1,24 @@
-from curses.ascii import isdigit
+from typing import Callable, Optional
 
 from library import Library
 from datetime import datetime
 
-def validate_input(prompt, error_message, validator, cancel_word="stop"):
+CANCEL_WORD = "stop"
+VALID_SEARCH_TYPES = ["название", "автор", "год"]
+VALID_STATUSES = ["выдана", "в наличии"]
+
+SEARCH_TYPES_MAPPING = {
+    "название": "title",
+    "автор": "author",
+    "год": "year"
+}
+
+def validate_input(
+        prompt: str,
+        error_message: str,
+        validator: Callable[[str], bool],
+        cancel_word: str = CANCEL_WORD
+) -> Optional[str]:
     while True:
         value = input(f"{prompt} (введите '{cancel_word}' для отмены): ")
         if value.lower() == cancel_word.lower():
@@ -14,16 +29,33 @@ def validate_input(prompt, error_message, validator, cancel_word="stop"):
 
         print(error_message)
 
+def is_not_empty(value: str) -> bool:
+    return bool(value and value.strip())
+
+def is_valid_year(value: str) -> bool:
+    current_year = datetime.today().year
+    return value.isdigit() and int(value) <= current_year
+
+def is_positive_integer(value: str) -> bool:
+    return value.isdigit() and int(value) >= 0
+
+def is_valid_status(value: str) -> bool:
+    return value in VALID_STATUSES
+
+def is_valid_search_type(value: str) -> bool:
+    return value in VALID_SEARCH_TYPES
+
+
 class Librarian:
     def __init__(self):
         self.library = Library()
         self.current_year = datetime.now().year
 
-    def add_book(self):
+    def add_book(self) ->  None:
         title = validate_input(
             "Введите название книги",
             "Название книги не может быть пустым.",
-            lambda x: bool(x.strip()),
+            is_not_empty,
         )
 
         if title is None:
@@ -33,7 +65,7 @@ class Librarian:
         author = validate_input(
             "Введите автора книги",
             "Название книги не может быть пустым.",
-            lambda x: bool(x.strip()),
+            is_not_empty,
         )
 
         if author is None:
@@ -43,21 +75,20 @@ class Librarian:
         year = validate_input(
             "Введите год издания",
             f"Год издание должен быть числом и быть не больше {self.current_year}",
-            lambda x: x.isdigit() and int(x) <= self.current_year,
+            is_valid_year,
         )
 
         if year is None:
             print("Добавление книги отменено.")
             return
 
-        self.library.add_book(title, author, int(year))
-        return f"Книга '{title}' успешно добавлена в библиотеку."
+        self.library.add_book(title, author, year)
 
-    def delete_book(self):
+    def delete_book(self) -> None:
         delete_book_id = validate_input(
             "Введите ID книги для удаления",
             "ID книги должен быть целым числом",
-            lambda x: isdigit(x) and int(x) > 0,
+            is_positive_integer,
         )
 
         if delete_book_id is None:
@@ -66,36 +97,33 @@ class Librarian:
 
         self.library.delete_book(delete_book_id)
 
-    def search_book(self):
+    def search_book(self) -> None:
         search_type = validate_input(
             "Введите параметр поиска (название, автор, год)",
-            "Введите параметр поиска.",
-            lambda x: bool(x.strip()),
+            "Введите корректный параметр поиска - 'название', 'автор' или 'год'.",
+            is_valid_search_type,
         )
 
         if search_type is None:
             print("Поиск книги отменен.")
             return
 
-        elif search_type not in ['название', 'автор', 'год']:
-            print("Неверный параметр поиска.")
-            return
-
         search_term = validate_input(
             "Введите значение для поиска",
             "Значение для поиска не может быть пустым",
-            lambda x: bool(x.strip()),
+            is_not_empty,
         )
+        search_type = SEARCH_TYPES_MAPPING[search_type]
         self.library.search_book(search_type, search_term)
 
-    def display_books(self):
+    def display_books(self) -> None:
         self.library.display_books()
 
-    def change_status(self):
+    def change_status(self) -> None:
         book_id = validate_input(
             "Введите ID книги для изменения статуса",
             "ID книги должен быть целым числом",
-            lambda x: x.isdigit() and int(x) > 0,
+            is_positive_integer
         )
 
         if book_id is None:
@@ -105,7 +133,7 @@ class Librarian:
         new_status = validate_input(
             "Введите новый статус ('выдана', 'в наличии')",
             "Статус книги не может только 'выдана' или 'в наличии'",
-            lambda x: x.strip() in ['выдана', 'в наличии'],
+            is_valid_status,
         )
 
         if new_status is None:
